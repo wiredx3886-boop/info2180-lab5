@@ -11,16 +11,19 @@ $conn = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $username, $p
 $isCityLookup = $lookup === 'cities';
 
 if ($isCityLookup) {
+  // Exercise 5: JOIN cities to countries and return the cities of the named country
   $stmt = $conn->prepare(
     "SELECT cities.name, cities.district, cities.population
      FROM cities
      JOIN countries ON cities.country_code = countries.code
      WHERE countries.name = :country"
   );
+  $stmt->execute(['country' => $country]);
 } else {
-  $stmt = $conn->prepare("SELECT * FROM countries WHERE name = :country");
+  // Partial match, so a search like "pa" returns several countries (as in Figure 6)
+  $stmt = $conn->prepare("SELECT * FROM countries WHERE name LIKE :country");
+  $stmt->execute(['country' => '%' . $country . '%']);
 }
-$stmt->execute(['country' => $country]);
 
 $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -29,7 +32,7 @@ $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
   <thead>
     <tr>
 <?php if ($isCityLookup): ?>
-      <th>City Name</th>
+      <th>Name</th>
       <th>District</th>
       <th>Population</th>
 <?php else: ?>
@@ -44,14 +47,14 @@ $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <?php foreach ($results as $row): ?>
     <tr>
 <?php if ($isCityLookup): ?>
-      <td><?= htmlspecialchars($row['name'], ENT_QUOTES, 'UTF-8'); ?></td>
-      <td><?= htmlspecialchars($row['district'], ENT_QUOTES, 'UTF-8'); ?></td>
+      <td><?= htmlspecialchars((string) $row['name'], ENT_QUOTES, 'UTF-8'); ?></td>
+      <td><?= htmlspecialchars((string) $row['district'], ENT_QUOTES, 'UTF-8'); ?></td>
       <td><?= htmlspecialchars((string) $row['population'], ENT_QUOTES, 'UTF-8'); ?></td>
 <?php else: ?>
-      <td><?= htmlspecialchars($row['name'], ENT_QUOTES, 'UTF-8'); ?></td>
-      <td><?= htmlspecialchars($row['continent'], ENT_QUOTES, 'UTF-8'); ?></td>
-      <td><?= htmlspecialchars((string) $row['indep_year'], ENT_QUOTES, 'UTF-8'); ?></td>
-      <td><?= htmlspecialchars($row['head_of_state'], ENT_QUOTES, 'UTF-8'); ?></td>
+      <td><?= htmlspecialchars((string) $row['name'], ENT_QUOTES, 'UTF-8'); ?></td>
+      <td><?= htmlspecialchars((string) $row['continent'], ENT_QUOTES, 'UTF-8'); ?></td>
+      <td><?= htmlspecialchars((string) $row['independence_year'], ENT_QUOTES, 'UTF-8'); ?></td>
+      <td><?= htmlspecialchars((string) $row['head_of_state'], ENT_QUOTES, 'UTF-8'); ?></td>
 <?php endif; ?>
     </tr>
 <?php endforeach; ?>

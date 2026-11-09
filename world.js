@@ -1,18 +1,10 @@
 document.addEventListener("DOMContentLoaded", function () {
-    const lookupButton = document.getElementById("lookup");
     const countryInput = document.getElementById("country");
     const result = document.getElementById("result");
 
-    if (!lookupButton || !countryInput || !result) return;
-
-    lookupButton.addEventListener("click", function (event) {
-        event.preventDefault();
-
-        const params = new URLSearchParams();
-        params.set("country", countryInput.value.trim());
-
-        const lookupType = document.querySelector('input[name="lookup"]:checked');
-        if (lookupType) params.set("lookup", lookupType.value);
+    function search(lookup) {
+        const params = new URLSearchParams({ country: countryInput.value.trim() });
+        if (lookup) params.set("lookup", lookup);
 
         result.textContent = "Loading...";
         fetch("world.php?" + params.toString())
@@ -20,11 +12,19 @@ document.addEventListener("DOMContentLoaded", function () {
                 if (!response.ok) throw new Error("Request failed");
                 return response.text();
             })
-            .then(function (html) {
-                result.innerHTML = html;
-            })
+            .then(function (html) { result.innerHTML = html; })
             .catch(function () {
                 result.textContent = "Unable to retrieve results. Please try again.";
             });
+    }
+
+    document.getElementById("lookup").addEventListener("click", function (e) {
+        e.preventDefault();
+        search();
+    });
+
+    document.getElementById("lookupCity").addEventListener("click", function (e) {
+        e.preventDefault();
+        search("cities");   // -> world.php?country=Jamaica&lookup=cities
     });
 });
